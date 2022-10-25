@@ -1,0 +1,227 @@
+definitions:
+  model.UploadFile:
+    properties:
+      hash:
+        type: string
+      id:
+        type: integer
+      index_name:
+        type: string
+      modify_at:
+        type: string
+      path:
+        type: string
+      rel_path:
+        type: string
+    type: object
+  model.Voucher:
+    properties:
+      host:
+        type: string
+      id:
+        type: integer
+      usable:
+        type: boolean
+      voucher:
+        type: string
+    type: object
+  model.WatchFile:
+    properties:
+      id:
+        type: integer
+      index_ext:
+        type: string
+      path:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /add_voucher:
+    get:
+      consumes:
+      - application/json
+      description: add voucher
+      parameters:
+      - description: voucher
+        in: query
+        name: voucher
+        required: true
+        type: string
+      - description: host
+        in: query
+        name: host
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Voucher'
+      summary: add voucher
+      tags:
+      - Voucher
+  /add_watch_file:
+    get:
+      consumes:
+      - application/json
+      description: add watch file
+      parameters:
+      - description: watch file path
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: index file or index file ext
+        in: query
+        name: index
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.WatchFile'
+      summary: add watch file
+      tags:
+      - Watch File
+  /reference:
+    get:
+      consumes:
+      - application/json
+      description: upload file reference
+      parameters:
+      - description: file path
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: upload file reference
+      tags:
+      - Upload File
+  /remove_voucher:
+    get:
+      consumes:
+      - application/json
+      description: remove voucher
+      parameters:
+      - description: voucher
+        in: query
+        name: voucher
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: affect rows
+          schema:
+            type: int
+      summary: remove voucher
+      tags:
+      - Voucher
+  /remove_watch_file:
+    get:
+      consumes:
+      - application/json
+      description: remove watch file
+      parameters:
+      - description: watch file path
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: affect rows
+          schema:
+            type: int
+      summary: remove watch file
+      tags:
+      - Watch File
+  /upload_files:
+    get:
+      consumes:
+      - application/json
+      description: pagination list upload files
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UploadFile'
+      summary: list upload files
+      tags:
+      - Upload File
+  /vouchers:
+    get:
+      consumes:
+      - application/json
+      description: pagination list vouchers
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Voucher'
+      summary: list vouchers
+      tags:
+      - Voucher
+  /watch_files:
+    get:
+      consumes:
+      - application/json
+      description: pagination list watch files
+      parameters:
+      - description: page number
+        in: query
+        name: page_num
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.WatchFile'
+      summary: list watch files
+      tags:
+      - Watch File
+swagger: "2.0"

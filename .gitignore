@@ -1,0 +1,7 @@
+build/
+.idea
+.DS_Store
+gateway.db
+upload
+assets
+*.db
