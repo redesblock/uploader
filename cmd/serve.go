@@ -19,6 +19,7 @@ const (
 	FlagDBDSN    = "database_dsn"
 	FlagLevel    = "log_level"
 	FlagGateWay  = "gateway"
+	FlagNode     = "node"
 )
 
 // serveCmd represents the serve command

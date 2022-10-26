@@ -47,7 +47,7 @@ type syncer struct {
 	ignoreHidden bool // ignore hidden files or not.
 }
 
-func (s *syncer) Upload(host string, voucherID string, path string, indexExt string) (string, error) {
+func (s *syncer) Upload(node string, voucherID string, path string, indexExt string) (string, error) {
 	log.WithField("path", path).Debugf("uploading ...")
 
 	t := time.Now()
@@ -56,7 +56,7 @@ func (s *syncer) Upload(host string, voucherID string, path string, indexExt str
 		return "", fmt.Errorf("tar file error %v", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, host+"/hop", buf)
+	req, err := http.NewRequest(http.MethodPost, "http://"+node+":1633"+"/hop", buf)
 	if err != nil {
 		return "", fmt.Errorf("new request error %v", err)
 	}

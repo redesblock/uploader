@@ -66,17 +66,20 @@ func AddWatchFileHandler(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, fmt.Sprintf("invalid index (%s)", index))
 			return
 		}
+
 		path := c.Query("path")
-		fi, err := os.Stat(path)
-		if err != nil || !fi.IsDir() {
-			c.JSON(http.StatusBadRequest, fmt.Sprintf("invalid path (%s)", path))
+		if fi, err := os.Stat(path); err != nil || !fi.IsDir() {
+			if err == nil {
+				err = fmt.Errorf("only support folder")
+			}
+			c.JSON(http.StatusBadRequest, fmt.Sprintf("invalid path %v", err))
 			return
 		}
 
 		fullPath, err := filepath.Abs(path)
 		if err != nil {
 			log.Errorf("api %s error %v", c.Request.URL.Path, err)
-			c.JSON(http.StatusBadRequest, err)
+			c.JSON(http.StatusBadRequest, fmt.Errorf("invalid path %v", err))
 			return
 		}
 
@@ -85,9 +88,8 @@ func AddWatchFileHandler(db *gorm.DB) func(c *gin.Context) {
 			log.Errorf("api %s error %v", c.Request.URL.Path, res.Error)
 			c.JSON(http.StatusInternalServerError, res.Error)
 			return
-		} else if res.RowsAffected == 0 {
-			item.Path = fullPath
 		}
+		item.Path = fullPath
 		item.IndexExt = index
 
 		if err := db.Save(&item).Error; err != nil {

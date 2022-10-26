@@ -46,8 +46,8 @@ var doc = `{
                     },
                     {
                         "type": "string",
-                        "description": "host",
-                        "name": "host",
+                        "description": "node api",
+                        "name": "node",
                         "in": "query",
                         "required": true
                     }
@@ -121,6 +121,12 @@ var doc = `{
                         "name": "path",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "usable",
+                        "name": "usable",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -330,17 +336,20 @@ var doc = `{
                 },
                 "rel_path": {
                     "type": "string"
+                },
+                "usable": {
+                    "type": "boolean"
                 }
             }
         },
         "model.Voucher": {
             "type": "object",
             "properties": {
-                "host": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
+                },
+                "node": {
+                    "type": "string"
                 },
                 "usable": {
                     "type": "boolean"

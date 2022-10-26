@@ -63,25 +63,27 @@ func Start(port string, db *gorm.DB, interval string, gateway string) error {
 
 	scheduler := gocron.NewScheduler(time.UTC)
 	if _, err := scheduler.Every(interval).Do(func() {
-		logger := log.WithField("scheduler", interval)
-		var items []*model.WatchFile
-		if err := db.Model(&model.WatchFile{}).Order("id desc").Find(&items).Error; err != nil {
-			logger.WithField("error", err).Errorf("load watch files")
-			return
-		}
+		duration, _ := time.ParseDuration(interval)
+		logger := log.WithField("upload scheduler", interval)
 		var vouchers []*model.Voucher
 		if err := db.Model(&model.Voucher{}).Order("id desc").Where("usable = true").Find(&vouchers).Error; err != nil {
 			logger.WithField("error", err).Errorf("load vouchers")
 			return
 		}
+
 		voucherCnt := len(vouchers)
-		voucherIndex := 0
-		_ = voucherIndex
 		if voucherCnt == 0 {
 			logger.WithField("error", fmt.Errorf("no usable vouchers")).Errorf("load vouchers")
 			return
 		}
 
+		var items []*model.WatchFile
+		if err := db.Model(&model.WatchFile{}).Order("id desc").Find(&items).Error; err != nil {
+			logger.WithField("error", err).Errorf("load watch files")
+			return
+		}
+
+		voucherIndex := 0
 		for _, item := range items {
 			if err := filepath.Walk(item.Path, func(walkPath string, info fs.FileInfo, err error) error {
 				if err != nil {
@@ -100,7 +102,13 @@ func Start(port string, db *gorm.DB, interval string, gateway string) error {
 				if info.IsDir() {
 					return nil
 				}
+				// index name
 				if strings.HasSuffix(info.Name(), item.IndexExt) {
+					if time.Now().Sub(info.ModTime()) < duration {
+						// ignore upload before duration
+						return nil
+					}
+					// upload directory contains index name
 					path := filepath.Dir(walkPath)
 					relPath, err := filepath.Rel(item.Path, path)
 					if err != nil {
@@ -109,44 +117,90 @@ func Start(port string, db *gorm.DB, interval string, gateway string) error {
 
 					var f model.UploadFile
 					if res := db.Model(&model.UploadFile{}).Where("rel_path = ?", relPath).Find(&f); res.Error != nil {
-						return res.Error
+						return fmt.Errorf("find upload file error %v", res.Error)
 					} else if res.RowsAffected > 0 {
-						if f.IndexName != info.Name() || info.ModTime().Sub(f.ModifyAt) < time.Hour {
+						if f.IndexName != info.Name() || info.ModTime().Sub(f.ModifyAt) < duration {
+							// modify ignore before duration
 							return nil
 						}
 						if f.Path != path {
 							return fmt.Errorf("relPath %s already found in watch file %s", relPath, f.Path)
 						}
 					}
+
+					hash := ""
+					for i := 0; i < voucherCnt; i++ {
+						voucherIndex += i
+						voucher := vouchers[voucherIndex%voucherCnt]
+						reference, err := syncer.Upload(voucher.Node, voucher.Voucher, path, item.IndexExt)
+						if err != nil {
+							logger.WithField("relPath", f.RelPath).WithField("index", f.IndexName).WithField("error", err).Warningf("synced to mop failed, try %d", i)
+							continue
+						} else {
+							hash = reference
+							break
+						}
+					}
 					f.Path = path
 					f.RelPath = relPath
 					f.IndexName = info.Name()
 					f.ModifyAt = info.ModTime()
-
-					success := false
-					for i := 0; i < voucherCnt; i++ {
-						voucherIndex += i
-						voucher := vouchers[voucherIndex%voucherCnt]
-						reference, err := syncer.Upload(voucher.Host, voucher.Voucher, path, item.IndexExt)
-						if err != nil {
-							logger.WithField("relPath", f.RelPath).WithField("index", f.IndexName).WithField("error", err).Errorf("synced to mop")
-							continue
+					f.Usable = false
+					if len(hash) != 0 {
+						f.Hash = hash
+						if err := db.Save(&f).Error; err != nil {
+							return fmt.Errorf("save upload file error %v", err)
 						}
-						success = true
-						f.Hash = reference
+						logger.WithField("relPath", f.RelPath).WithField("index", f.IndexName).WithField("reference", f.Hash).Info("synced to mop")
+					} else {
+						logger.WithField("relPath", f.RelPath).WithField("index", f.IndexName).Error("synced to mop failed")
 					}
-					if !success {
-						return nil
-					}
-
-					if err := db.Save(&f).Error; err != nil {
-						return err
-					}
-					logger.WithField("relPath", f.RelPath).WithField("index", f.IndexName).WithField("reference", f.Hash).Info("synced to mop")
 				}
 				return nil
 			}); err != nil {
 				logger.WithField("path", item.Path).WithField("error", err).Errorf("walk watch file")
+			}
+		}
+	}); err != nil {
+		return err
+	}
+
+	if _, err := scheduler.Every("1m").Do(func() {
+		logger := log.WithField("usable scheduler", interval)
+		var vouchers []*model.Voucher
+		if err := db.Model(&model.Voucher{}).Find(&vouchers).Error; err != nil {
+			logger.WithField("error", err).Errorf("load vouchers")
+			return
+		}
+		for _, voucher := range vouchers {
+			usable, err := util.VoucherUsabe(voucher.Node, voucher.Voucher)
+			if err != nil {
+				logger.WithField("error", err).Errorf("find voucher usable")
+			}
+			if voucher.Usable != usable {
+				voucher.Usable = usable
+				if err := db.Save(&voucher).Error; err != nil {
+					logger.WithField("error", err).Errorf("save voucher")
+				}
+			}
+		}
+
+		var items []*model.UploadFile
+		if err := db.Model(&model.UploadFile{}).Where("usable = false").Find(&items).Error; err != nil {
+			logger.WithField("error", err).Errorf("load upload files")
+			return
+		}
+
+		for _, item := range items {
+			usable, err := util.ReferenceUsabe(gateway, item.Hash)
+			if err != nil {
+				logger.WithField("error", err).Errorf("find reference usable")
+			}
+			if item.Usable != usable {
+				item.Usable = usable
+				if err := db.Save(&item).Error; err != nil {
+					logger.WithField("error", err).Errorf("save upload file")
+				}
 			}
 		}
 	}); err != nil {

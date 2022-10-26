@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redesblock/uploader/core/model"
+	"github.com/redesblock/uploader/core/util"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"net/http"
@@ -53,21 +54,32 @@ func VouchersHandler(db *gorm.DB) func(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param voucher query string true "voucher"
-// @Param host query string true "host"
+// @Param node query string true "node api"
 // @Success 200 {object} model.Voucher
 // @Router /add_voucher [get]
 func AddVoucherHandler(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		voucher := c.Query("voucher")
-		if len(voucher) == 0 {
-			log.Errorf("api %s error %v", c.Request.URL.Path, fmt.Errorf("invalid voucher (%s)", voucher))
-			c.JSON(http.StatusBadRequest, fmt.Errorf("invalid voucher (%s)", voucher))
+		node := c.Query("node")
+		if len(node) == 0 {
+			log.Errorf("api %s error %v", c.Request.URL.Path, fmt.Errorf("invalid node (%s) empty", node))
+			c.JSON(http.StatusBadRequest, fmt.Errorf("invalid node (%s) empty", node))
 			return
 		}
-		host := c.Query("host")
-		if len(host) == 0 {
-			log.Errorf("api %s error %v", c.Request.URL.Path, fmt.Errorf("invalid host (%s)", host))
-			c.JSON(http.StatusBadRequest, fmt.Errorf("invalid host (%s)", host))
+		if usable, err := util.NodeUsabe(node); !usable {
+			log.Errorf("api %s error %v", c.Request.URL.Path, fmt.Errorf("invalid node (%s) %v", node, err))
+			c.JSON(http.StatusBadRequest, fmt.Errorf("invalid node (%s) %v", node, err))
+			return
+		}
+
+		voucher := c.Query("voucher")
+		if len(voucher) == 0 {
+			log.Errorf("api %s error %v", c.Request.URL.Path, fmt.Errorf("invalid voucher (%s) empty", voucher))
+			c.JSON(http.StatusBadRequest, fmt.Errorf("invalid voucher (%s) empty", voucher))
+			return
+		}
+		if usable, err := util.VoucherUsabe(node, voucher); !usable {
+			log.Errorf("api %s error %v", c.Request.URL.Path, fmt.Errorf("invalid voucher (%s) %v", node, err))
+			c.JSON(http.StatusBadRequest, fmt.Errorf("invalid voucher (%s) %v", node, err))
 			return
 		}
 
@@ -76,11 +88,9 @@ func AddVoucherHandler(db *gorm.DB) func(c *gin.Context) {
 			log.Errorf("api %s error %v", c.Request.URL.Path, res.Error)
 			c.JSON(http.StatusInternalServerError, res.Error)
 			return
-		} else if res.RowsAffected == 0 {
-			item.Voucher = voucher
-			item.Usable = true
 		}
-		item.Host = host
+		item.Voucher = voucher
+		item.Node = node
 
 		if err := db.Save(&item).Error; err != nil {
 			log.Errorf("api %s error %v", c.Request.URL.Path, err)

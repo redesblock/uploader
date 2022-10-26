@@ -13,13 +13,15 @@ definitions:
         type: string
       rel_path:
         type: string
+      usable:
+        type: boolean
     type: object
   model.Voucher:
     properties:
-      host:
-        type: string
       id:
         type: integer
+      node:
+        type: string
       usable:
         type: boolean
       voucher:
@@ -48,9 +50,9 @@ paths:
         name: voucher
         required: true
         type: string
-      - description: host
+      - description: node api
         in: query
-        name: host
+        name: node
         required: true
         type: string
       produces:
@@ -100,6 +102,10 @@ paths:
         name: path
         required: true
         type: string
+      - description: usable
+        in: query
+        name: usable
+        type: boolean
       produces:
       - application/json
       responses:

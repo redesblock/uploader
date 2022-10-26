@@ -5,41 +5,46 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"github.com/redesblock/uploader/core/model"
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"io/ioutil"
+	"net/http"
 )
 
 // addVoucherCmd represents the addVoucher command
 var addVoucherCmd = &cobra.Command{
-	Use:   "addVoucher voucherID Host",
+	Use:   "addVoucher voucherID Node",
 	Args:  cobra.ExactArgs(2),
-	Short: "add an usable voucher",
+	Short: "add an usable voucher id from special node for file uploading",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		voucher := args[0]
-		host := args[1]
-
-		db, err := model.New(viper.GetString(FlagDBMode), viper.GetString(FlagDBDSN))
+		node, err := cmd.Flags().GetString(FlagNode)
 		if err != nil {
 			return err
 		}
-		var item model.Voucher
-		if res := db.Where("voucher = ?", voucher).Find(&item); res.Error != nil {
-			return res.Error
-		} else if res.RowsAffected == 0 {
-			item.Voucher = voucher
-			item.Usable = true
-		}
-		item.Host = host
-
-		if err := db.Save(&item).Error; err != nil {
+		response, err := http.Get(node + fmt.Sprintf("/api/add_voucher?voucher=%s&node=%s", args[0], args[1]))
+		if err != nil {
 			return err
 		}
+		defer response.Body.Close()
+		if response.StatusCode != http.StatusOK {
+			bts, _ := ioutil.ReadAll(response.Body)
+			return fmt.Errorf("%s %s", response.Status, string(bts))
+		}
+		bts, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return err
+		}
+		var out bytes.Buffer
+		json.Indent(&out, bts, "", "  ")
+		fmt.Println(out.String())
 		return nil
 	},
 }
 
 func init() {
+	addVoucherCmd.Flags().String(FlagNode, "http://127.0.0.1:8082", "node api")
 	rootCmd.AddCommand(addVoucherCmd)
 
 	// Here you will define your flags and configuration settings.

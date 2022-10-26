@@ -53,18 +53,22 @@ func UploadFilesHandler(db *gorm.DB) func(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param path query string true "file path"
+// @Param usable query bool false "usable"
 // @Success 200 string 74e95e2785817fbad5c2b29f62a812009d5b43850856757ce35627283df7a817
 // @Router /reference [get]
 func FileReferenceHandler(db *gorm.DB, gateway string) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		path := c.Query("path")
-
 		items := strings.Split(path, "/")
 		cnt := len(items)
 		for i := cnt; i > 0; i-- {
 			tPath := strings.Join(items[:i], "/")
 			var item model.UploadFile
-			if res := db.Where("rel_path = ?", tPath).Find(&item); res.Error != nil {
+			tx := db.Where("rel_path = ?", tPath)
+			if strings.ToLower(c.Query("usable")) == "true" {
+				tx = tx.Where("usable = true")
+			}
+			if res := tx.Find(&item); res.Error != nil {
 				log.Errorf("api %s error %v", c.Request.URL.Path, res.Error)
 				c.JSON(http.StatusInternalServerError, res.Error)
 				return
