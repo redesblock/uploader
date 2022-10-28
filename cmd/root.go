@@ -52,13 +52,6 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.PersistentFlags().String(FlagDBMode, "sqlite", "database mode, sqlite、mysql、postgres")
-	rootCmd.PersistentFlags().String(FlagDBDSN, "sqlite.db", "database source name")
-	rootCmd.PersistentFlags().String(FlagLevel, "info", "log level")
-
-	viper.BindPFlag(FlagDBMode, rootCmd.PersistentFlags().Lookup(FlagDBMode))
-	viper.BindPFlag(FlagDBDSN, rootCmd.PersistentFlags().Lookup(FlagDBDSN))
-	viper.BindPFlag(FlagLevel, rootCmd.PersistentFlags().Lookup(FlagLevel))
 }
 
 func initConfig() {

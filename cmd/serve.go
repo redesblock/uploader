@@ -50,6 +50,14 @@ func init() {
 	viper.BindPFlag(FlagInterval, serveCmd.Flags().Lookup(FlagInterval))
 	viper.BindPFlag(FlagGateWay, serveCmd.Flags().Lookup(FlagGateWay))
 
+	serveCmd.PersistentFlags().String(FlagDBMode, "sqlite", "database mode, sqlite、mysql、postgres")
+	serveCmd.PersistentFlags().String(FlagDBDSN, "sqlite.db", "database source name")
+	serveCmd.PersistentFlags().String(FlagLevel, "info", "log level")
+
+	viper.BindPFlag(FlagDBMode, serveCmd.PersistentFlags().Lookup(FlagDBMode))
+	viper.BindPFlag(FlagDBDSN, serveCmd.PersistentFlags().Lookup(FlagDBDSN))
+	viper.BindPFlag(FlagLevel, serveCmd.PersistentFlags().Lookup(FlagLevel))
+
 	rootCmd.AddCommand(serveCmd)
 
 	// Here you will define your flags and configuration settings.

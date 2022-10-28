@@ -22,15 +22,15 @@ var listVoucherCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		page_num := int64(1)
 		page_size := int64(10)
-		if len(args) > 1 {
+		if len(args) > 0 {
 			n, err := strconv.ParseInt(args[0], 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid page_size")
 			}
 			page_size = n
 		}
-		if len(args) > 2 {
-			n, err := strconv.ParseInt(args[0], 10, 64)
+		if len(args) > 1 {
+			n, err := strconv.ParseInt(args[1], 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid page_num")
 			}

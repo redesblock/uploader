@@ -11,36 +11,19 @@ import (
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 )
 
-// listWatchCmd represents the listWatch command
-var listWatchCmd = &cobra.Command{
-	Use:   "listWatch [page_size] [page_num]",
-	Short: "list folder path or file path for monitoring upload",
-	Args:  cobra.MinimumNArgs(0),
+// getUploadCmd represents the getUpload command
+var getUploadCmd = &cobra.Command{
+	Use:   "getUpload path",
+	Short: "get mop gateway url",
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		page_num := int64(1)
-		page_size := int64(10)
-		if len(args) > 0 {
-			n, err := strconv.ParseInt(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid page_size")
-			}
-			page_size = n
-		}
-		if len(args) > 1 {
-			n, err := strconv.ParseInt(args[1], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid page_num")
-			}
-			page_num = n
-		}
 		node, err := cmd.Flags().GetString(FlagNode)
 		if err != nil {
 			return err
 		}
-		response, err := http.Get(node + fmt.Sprintf("/api/watch_files?page_num=%d&page_size=%d", page_num, page_size))
+		response, err := http.Get(node + fmt.Sprintf("/api/reference?path=%s", args[0]))
 		if err != nil {
 			return err
 		}
@@ -61,16 +44,16 @@ var listWatchCmd = &cobra.Command{
 }
 
 func init() {
-	listWatchCmd.Flags().String(FlagNode, "http://127.0.0.1:8082", "node api")
-	rootCmd.AddCommand(listWatchCmd)
+	getUploadCmd.Flags().String(FlagNode, "http://127.0.0.1:8082", "node api")
+	rootCmd.AddCommand(getUploadCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// listWatchCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// getUploadCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// listWatchCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// getUploadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

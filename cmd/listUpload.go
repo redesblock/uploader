@@ -14,10 +14,10 @@ import (
 	"strconv"
 )
 
-// listWatchCmd represents the listWatch command
-var listWatchCmd = &cobra.Command{
-	Use:   "listWatch [page_size] [page_num]",
-	Short: "list folder path or file path for monitoring upload",
+// listUploadCmd represents the listUpload command
+var listUploadCmd = &cobra.Command{
+	Use:   "listUpload [page_size] [page_num]",
+	Short: "list uploaded folders",
 	Args:  cobra.MinimumNArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		page_num := int64(1)
@@ -40,7 +40,7 @@ var listWatchCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		response, err := http.Get(node + fmt.Sprintf("/api/watch_files?page_num=%d&page_size=%d", page_num, page_size))
+		response, err := http.Get(node + fmt.Sprintf("/api/upload_files?page_num=%d&page_size=%d", page_num, page_size))
 		if err != nil {
 			return err
 		}
@@ -61,16 +61,16 @@ var listWatchCmd = &cobra.Command{
 }
 
 func init() {
-	listWatchCmd.Flags().String(FlagNode, "http://127.0.0.1:8082", "node api")
-	rootCmd.AddCommand(listWatchCmd)
+	listUploadCmd.Flags().String(FlagNode, "http://127.0.0.1:8082", "node api")
+	rootCmd.AddCommand(listUploadCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// listWatchCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// listUploadCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// listWatchCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// listUploadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

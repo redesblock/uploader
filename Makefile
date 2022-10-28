@@ -10,10 +10,12 @@ build: go.sum
 	@go fmt ./...
 	@go build  -o build/uploader .
 
-build-linux: go.sum
-	GOOS=linux GOARCH=amd64 $(MAKE) build
-
-build-window: go.sum
-	GOOS=windows GOARCH=amd64 $(MAKE) build
-
 .PHONY: all build build-linux build-window
+
+
+.PHONY: release
+release: CGO_ENABLED=0
+release:
+	GOOS=windows GOARCH=amd64 go build  -o bin/mop-uploader-windows-amd64.exe .
+	GOOS=linux GOARCH=amd64 go build  -o bin/mop-uploader-linux-amd64 .
+	GOOS=darwin GOARCH=amd64 go build  -o bin/mop-uploader-darwin-amd64 .
