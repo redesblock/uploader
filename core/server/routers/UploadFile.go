@@ -76,8 +76,10 @@ func FileReferenceHandler(db *gorm.DB, gateway string) func(c *gin.Context) {
 				refs := []string{item.Hash}
 				if i != cnt {
 					refs = append(refs, items[i:]...)
+					c.JSON(http.StatusOK, gateway+"/access/"+strings.Join(refs, "/"))
+				} else {
+					c.JSON(http.StatusOK, gateway+"/access/"+strings.Join(refs, "/")+"/")
 				}
-				c.JSON(http.StatusOK, gateway+"/access/"+strings.Join(refs, "/")+"/")
 				return
 			}
 		}
