@@ -16,7 +16,7 @@ var (
 )
 
 func NodeUsabe(node string) (bool, error) {
-	response, err := client.Get("http://" + node + ":1633")
+	response, err := client.Get("http://" + node + ":1683")
 	if err != nil {
 		return false, err
 	}
@@ -25,7 +25,7 @@ func NodeUsabe(node string) (bool, error) {
 }
 
 func VoucherUsabe(node string, voucher string) (bool, error) {
-	response, err := client.Get("http://" + node + ":1635" + "/stamps/" + voucher)
+	response, err := client.Get("http://" + node + ":1685" + "/stamps/" + voucher)
 	if err != nil {
 		return false, err
 	}
@@ -40,7 +40,7 @@ func VoucherUsabe(node string, voucher string) (bool, error) {
 }
 
 func ReferenceUsabe(gateway string, reference string) (bool, error) {
-	response, err := client.Get(gateway + "/access/" + reference + "/")
+	response, err := client.Get(gateway + "/mop/" + reference + "/")
 	if err != nil {
 		return false, err
 	}

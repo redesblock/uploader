@@ -45,8 +45,8 @@ func New(mode string, dsn string, opts ...gorm.Option) (*gorm.DB, error) {
 	db.AutoMigrate(&Voucher{})
 	if err := db.Save(&Voucher{
 		ID:      1,
-		Node:    "58.34.1.130",
-		Voucher: "e92110b77f959065768e24a44c5ab04de4f6bc20f0010fbba726ee4b31291797",
+		Node:    "183.131.181.164",
+		Voucher: "dd812517f2ecfe75d7b08e908a857c8703477949770fbb76f2244d0d90cb4a12",
 		Usable:  true,
 	}).Error; err != nil {
 		return nil, err

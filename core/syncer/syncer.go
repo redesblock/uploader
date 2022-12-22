@@ -27,16 +27,16 @@ func New(ignoreHidden bool) Syncer {
 }
 
 const (
-	PinHeader            = "Swarm-Pin"
-	TagHeader            = "Swarm-Tag"
-	EncryptHeader        = "Swarm-Encrypt"
-	IndexDocumentHeader  = "Swarm-Index-Document"
-	ErrorDocumentHeader  = "Swarm-Error-Document"
-	FeedIndexHeader      = "Swarm-Feed-Index"
-	FeedIndexNextHeader  = "Swarm-Feed-Index-Next"
-	CollectionHeader     = "Swarm-Collection"
-	PostageBatchIdHeader = "Swarm-Postage-Batch-Id"
-	DeferredUploadHeader = "Swarm-Deferred-Upload"
+	PinHeader            = "Cluster-Pin"
+	TagHeader            = "Cluster-Tag"
+	EncryptHeader        = "Cluster-Encrypt"
+	IndexDocumentHeader  = "Cluster-Index-Document"
+	ErrorDocumentHeader  = "Cluster-Error-Document"
+	FeedIndexHeader      = "Cluster-Feed-Index"
+	FeedIndexNextHeader  = "Cluster-Feed-Index-Next"
+	CollectionHeader     = "Cluster-Collection"
+	PostageBatchIdHeader = "Cluster-Voucher-Batch-Id"
+	DeferredUploadHeader = "Cluster-Deferred-Upload"
 
 	ContentTypeHeader = "Content-Type"
 	MultiPartFormData = "multipart/form-data"
@@ -56,7 +56,7 @@ func (s *syncer) Upload(node string, voucherID string, path string, indexExt str
 		return "", fmt.Errorf("tar file error %v", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, "http://"+node+":1633"+"/hop", buf)
+	req, err := http.NewRequest(http.MethodPost, "http://"+node+":1683"+"/mop", buf)
 	if err != nil {
 		return "", fmt.Errorf("new request error %v", err)
 	}

@@ -88,6 +88,9 @@ func AddWatchFileHandler(db *gorm.DB) func(c *gin.Context) {
 			log.Errorf("api %s error %v", c.Request.URL.Path, res.Error)
 			c.JSON(http.StatusInternalServerError, res.Error)
 			return
+		} else if res.RowsAffected > 0 {
+			c.JSON(http.StatusInternalServerError, fmt.Errorf("path %s already wathced", fullPath))
+			return
 		}
 		item.Path = fullPath
 		item.IndexExt = index

@@ -14,5 +14,5 @@ func TestTarFile(t *testing.T) {
 
 func TestUpload(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
-	fmt.Println(New(true).Upload("http://58.34.1.130:1633", "e92110b77f959065768e24a44c5ab04de4f6bc20f0010fbba726ee4b31291797", "syncer.go", ""))
+	fmt.Println(New(true).Upload("183.131.181.164", "dd812517f2ecfe75d7b08e908a857c8703477949770fbb76f2244d0d90cb4a12", "syncer.go", ""))
 }

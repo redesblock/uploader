@@ -44,7 +44,7 @@ var serveCmd = &cobra.Command{
 func init() {
 	serveCmd.Flags().String(FlagPort, "8082", "listen port")
 	serveCmd.Flags().String(FlagInterval, "10m", "watcher poll interval")
-	serveCmd.Flags().String(FlagGateWay, "https://gateway.mopweb3.com:13443", "mop gateway")
+	serveCmd.Flags().String(FlagGateWay, "https://gateway.mopweb3.cn", "mop gateway")
 
 	viper.BindPFlag(FlagPort, serveCmd.Flags().Lookup(FlagPort))
 	viper.BindPFlag(FlagInterval, serveCmd.Flags().Lookup(FlagInterval))
