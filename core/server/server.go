@@ -61,8 +61,17 @@ func Start(port string, db *gorm.DB, interval string, gateway string) error {
 	syncer := syncer.New(ignoreHidden)
 	_ = syncer
 
+	done := make(chan struct{}, 1)
 	scheduler := gocron.NewScheduler(time.UTC)
 	if _, err := scheduler.Every(interval).Do(func() {
+		select {
+		case done <- struct{}{}:
+		case <-time.NewTicker(time.Second).C:
+			return
+		}
+		defer func() {
+			<-done
+		}()
 		duration, _ := time.ParseDuration(interval)
 		logger := log.WithField("upload scheduler", interval)
 		var vouchers []*model.Voucher
@@ -128,6 +137,11 @@ func Start(port string, db *gorm.DB, interval string, gateway string) error {
 						}
 					}
 
+					f.Path = path
+					f.RelPath = relPath
+					f.IndexName = info.Name()
+					logger.WithField("relPath", f.RelPath).WithField("index", f.IndexName).Warningf("synced to mop ....")
+
 					hash := ""
 					for i := 0; i < voucherCnt; i++ {
 						voucherIndex += i
@@ -141,9 +155,6 @@ func Start(port string, db *gorm.DB, interval string, gateway string) error {
 							break
 						}
 					}
-					f.Path = path
-					f.RelPath = relPath
-					f.IndexName = info.Name()
 					f.ModifyAt = info.ModTime()
 					f.Usable = false
 					if len(hash) != 0 {
